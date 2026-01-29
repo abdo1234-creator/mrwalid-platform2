@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إنشاء حساب جديد | مستر وليد</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-light);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .register-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .form-input {
+            width: 100%;
+            background-color: #f1f5f9;
+            border: 2px solid transparent;
+            padding: 12px 16px;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            color: #1e293b;
+        }
+
+        .form-input:focus {
+            background-color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-register {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-register:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-register:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.95rem;
+        }
+
+        .animate-item {
+            animation: fadeInShadow 0.6s ease forwards;
+        }
+
+        @keyframes fadeInShadow {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* تنسيق مخصص لـ SweetAlert ليتماشى مع روح الموقع */
+        .swal2-popup {
+            border-radius: 24px !important;
+            font-family: 'Cairo', sans-serif !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="register-card animate__animated animate__fadeIn">
+        <div class="header text-center mb-8">
+            <h1 class="text-3xl font-black text-slate-800 mb-2">إنشاء حساب طالب 🎓</h1>
+            <p class="text-slate-500">سجل بياناتك للبدء في رحلة النجاح</p>
+        </div>
+
+        <form id="registerForm" class="space-y-5">
+            <div class="animate-item" style="animation-delay: 0.1s;">
+                <label>الاسم بالكامل</label>
+                <input type="text" id="name" class="form-input" placeholder="أدخل اسمك الثلاثي" required>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="animate-item" style="animation-delay: 0.2s;">
+                    <label>رقم الهاتف (رقمك)</label>
+                    <input type="tel" id="phone" class="form-input" placeholder="01xxxxxxxxx" required>
+                </div>
+                <div class="animate-item" style="animation-delay: 0.3s;">
+                    <label>رقم ولي الأمر(متشغلش دماغك)</label>
+                    <input type="tel" id="parentPhone" class="form-input" placeholder="01xxxxxxxxx" required>
+                </div>
+            </div>
+
+            <div class="animate-item" style="animation-delay: 0.4s;">
+                <label>الصف الدراسي</label>
+                <select id="grade" class="form-input appearance-none cursor-pointer">
+                    <optgroup label="المرحلة الإعدادية">
+                        <option value="1-prep">الصف الأول الإعدادي</option>
+                        <option value="2-prep">الصف الثاني الإعدادي</option>
+                        <option value="3-prep">الصف الثالث الإعدادي</option>
+                    </optgroup>
+                    <optgroup label="المرحلة الثانوية">
+                        <option value="1-sec">الصف الأول الثانوي</option>
+                        <option value="2-sec">الصف الثاني الثانوي</option>
+                        <option value="3-sec">الصف الثالث الثانوي</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="animate-item" style="animation-delay: 0.5s;">
+                <label>كلمة المرور</label>
+                <input type="password" id="password" class="form-input mb-3" placeholder="********" required>
+                <input type="password" id="adminSecretKey" class="form-input border-indigo-200" placeholder="كود التحقق (للمستر فقط)">
+            </div>
+
+            <button type="submit" id="submitBtn" class="btn-register animate-item" style="animation-delay: 0.6s;">
+                إنشاء الحساب الآن
+            </button>
+        </form>
+
+        <div class="footer-text text-center mt-6 text-slate-500 font-semibold">
+            عندك حساب اصلا؟ <a href="login.html" class="text-indigo-600 hover:underline">سجل دخولك من هنا</a>
+        </div>
+    </div>
+
+    <script>
+        const registerForm = document.getElementById('registerForm');
+        const submitBtn = document.getElementById('submitBtn');
+
+        registerForm.onsubmit = async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const parentPhone = document.getElementById('parentPhone').value.trim();
+            const grade = document.getElementById('grade').value;
+            const password = document.getElementById('password').value;
+            const enteredKey = document.getElementById('adminSecretKey').value.trim();
+
+            // التحقق من أن رقم الطالب مختلف عن رقم ولي الأمر
+            if (phone === parentPhone) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'كنت عامل حسابي. مش قلتلك متشغلش دماغك!',
+                    text: 'لازم رقمك يكون مختلف عن رقم ولي امرك يعبقري.',
+                    confirmButtonText: 'حسناً',
+                    confirmButtonColor: '#6366f1'
+                });
+                return;
+            }
+
+            submitBtn.innerText = 'جاري المعالجة...';
+            submitBtn.disabled = true;
+
+            const masterKey = "waleed2026"; 
+            const userRole = (enteredKey === masterKey) ? 'admin' : 'student';
+
+            const formData = {
+                name,
+                phone,
+                parentPhone,
+                grade,
+                password,
+                role: userRole
+            };
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    localStorage.setItem('token', result.token); 
+                    localStorage.setItem('userId', result.userId || result._id);
+                    localStorage.setItem('userName', result.userName || formData.name);
+                    localStorage.setItem('role', userRole); 
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'ممتاز!',
+                        text: userRole === 'admin' ? 'تم تفعيل لوحة الإدارة بنجاح' : 'تم إنشاء حسابك بنجاح، جاري التوجيه...',
+                        showConfirmButton: false,
+                        timer: 2000
+                    }).then(() => {
+                        window.location.href = (userRole === 'admin') ? 'admin-dashboard.html' : 'student-dashboard.html';
+                    });
+
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'فشل العملية',
+                        text: result.message,
+                        confirmButtonText: 'إعادة المحاولة',
+                        confirmButtonColor: '#ef4444'
+                    });
+                    submitBtn.innerText = 'إنشاء الحساب الآن';
+                    submitBtn.disabled = false;
+                }
+            } catch (error) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'خطأ في الاتصال',
+                    text: 'حدث خطأ غير متوقع في الاتصال بالسيرفر.',
+                    confirmButtonText: 'فهمت',
+                    confirmButtonColor: '#ef4444'
+                });
+                submitBtn.innerText = 'إنشاء الحساب الآن';
+                submitBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+</html>

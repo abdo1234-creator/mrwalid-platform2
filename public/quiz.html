@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الاختبار | Mr Walid Mohamed</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: 'Cairo', sans-serif; background: #020617; color: #fff; user-select: none; -webkit-user-select: none; overflow-x: hidden; }
+        .glass { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .option-card { background: #1e293b; border: 2px solid transparent; transition: all 0.3s; cursor: pointer; }
+        .option-card:hover { border-color: #6366f1; background: #2d3748; }
+        .option-card.selected { border-color: #6366f1; background: #312e81; box-shadow: 0 0 15px rgba(99, 102, 241, 0.3); }
+        .sticky-timer { position: sticky; top: 1rem; z-index: 50; }
+        .progress-bar { height: 6px; background: #1e293b; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #4f46e5, #818cf8); transition: width 0.4s ease; }
+        @media print { body { display: none !important; } }
+        .animate-fade-in { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* ستايل إضافي لصورة السؤال */
+        .question-img { max-width: 100%; border-radius: 20px; border: 2px solid rgba(99, 102, 241, 0.2); margin-bottom: 1.5rem; cursor: zoom-in; }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8" oncontextmenu="return false;">
+
+<div class="max-w-3xl mx-auto">
+    <div class="glass p-6 rounded-3xl mb-8 flex justify-between items-center sticky-timer shadow-2xl">
+        <div>
+            <h1 id="quizTitle" class="text-xl font-black text-indigo-400">تحميل...</h1>
+            <p id="questionCountText" class="text-xs text-slate-400 mt-1 font-bold italic">سؤال -- من --</p>
+        </div>
+        <div class="text-left bg-slate-900/50 px-4 py-2 rounded-2xl border border-indigo-500/30">
+            <div id="timer" class="text-2xl font-mono font-bold text-white">00:00</div>
+            <div class="text-[10px] text-center text-indigo-300 font-bold uppercase tracking-widest">الوقت المتبقي</div>
+        </div>
+    </div>
+
+    <div class="progress-bar mb-8 mx-2">
+        <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+    </div>
+
+    <div id="quizContainer">
+        <div class="text-center p-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mx-auto"></div>
+            <p class="mt-4 text-slate-400 font-bold">جاري ترتيب الأسئلة...</p>
+        </div>
+    </div>
+
+    <div id="quizControls" style="display: none;" class="flex flex-col sm:flex-row gap-4 mt-8">
+        <button id="prevBtn" onclick="prevQuestion()" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-black py-4 rounded-2xl transition-all border border-slate-700">
+            <i class="fas fa-arrow-right ml-2"></i> السابق
+        </button>
+        <button id="nextBtn" onclick="nextQuestion()" class="flex-[2] bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl transition-all shadow-lg flex items-center justify-center gap-3">
+            <span>التالي</span> <i class="fas fa-arrow-left"></i>
+        </button>
+        <button id="submitBtn" onclick="confirmSubmit()" style="display: none;" 
+            class="flex-[2] bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-2xl transition-all shadow-lg flex items-center justify-center gap-3">
+            <i class="fas fa-paper-plane"></i> تسليم الاختبار
+        </button>
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizId = urlParams.get('id');
+    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem('token');
+    
+    let questions = [];
+    let userAnswers = {};
+    let timeLeft = 0;
+    let timerInterval;
+    let currentQuestionIdx = 0;
+
+    async function fetchQuiz() {
+        if (!token || !userId) { window.location.href = 'login.html'; return; }
+
+        try {
+            const res = await fetch(`/api/student/my-lessons/${userId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            
+            if (!data.success) throw new Error("فشل جلب البيانات");
+
+            let found = null;
+            if (data.quizzes) found = data.quizzes.find(q => String(q._id) === String(quizId));
+            if (!found && data.lessons) found = data.lessons.find(l => String(l._id) === String(quizId));
+
+            if (!found) {
+                Swal.fire('تنبيه', 'لم يتم العثور على الاختبار', 'error');
+                return;
+            }
+
+            if (found.alreadyTaken) {
+                Swal.fire({
+                    title: 'عذراً يا هندسة!',
+                    text: 'لقد قمت بتأدية هذا الاختبار مسبقاً.',
+                    icon: 'warning',
+                    confirmButtonText: 'العودة للمنصة',
+                    allowOutsideClick: false
+                }).then(() => { window.location.href = 'student-dashboard.html'; });
+                return;
+            }
+
+            questions = found.questions || found.quiz || [];
+
+            if (questions.length === 0) {
+                Swal.fire('تنبيه', 'لا توجد أسئلة حالياً', 'warning');
+                return;
+            }
+
+            timeLeft = (found.examDuration || 30) * 60;
+            document.getElementById('quizTitle').innerText = found.title || "اختبار تفاعلي";
+            document.getElementById('quizControls').style.display = 'flex';
+            
+            renderQuestion();
+            startTimer();
+        } catch (e) {
+            Swal.fire('خطأ', 'حدث خطأ أثناء تحميل الاختبار', 'error');
+        }
+    }
+
+    function renderQuestion() {
+        const container = document.getElementById('quizContainer');
+        const q = questions[currentQuestionIdx];
+        if (!q) return;
+
+        const qText = q.questionText || q.question || "لا يوجد نص للسؤال";
+        const qOptions = q.options || q.choices || [];
+        const qImage = q.questionImage || ""; // جلب رابط الصورة إذا وجد
+
+        document.getElementById('questionCountText').innerText = `السؤال ${currentQuestionIdx + 1} من ${questions.length}`;
+        const progress = ((currentQuestionIdx + 1) / questions.length) * 100;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+
+        // إضافة الصورة داخل الحاوية إذا كانت موجودة
+        let imageHtml = qImage ? `<img src="${qImage}" class="question-img shadow-lg" alt="سؤال" onclick="window.open('${qImage}', '_blank')">` : "";
+
+        container.innerHTML = `
+            <div class="glass p-6 md:p-10 rounded-[40px] border border-white/5 animate-fade-in">
+                ${imageHtml}
+                <div class="text-xl md:text-2xl font-black mb-10 leading-relaxed text-right">
+                    <span class="inline-flex items-center justify-center min-w-[3rem] h-12 px-2 bg-indigo-600 rounded-2xl text-lg ml-4 shadow-xl">س${currentQuestionIdx+1}</span> 
+                    ${qText}
+                </div>
+                <div class="grid gap-4">
+                    ${qOptions.map((opt, optIdx) => `
+                        <div onclick="selectOption(${currentQuestionIdx}, ${optIdx})" 
+                            class="option-card p-6 rounded-[24px] flex items-center gap-5 group ${userAnswers[currentQuestionIdx] === optIdx ? 'selected' : ''}">
+                            <span class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-sm font-black transition-colors ${userAnswers[currentQuestionIdx] === optIdx ? 'bg-indigo-600' : 'group-hover:bg-indigo-600'}">
+                                ${String.fromCharCode(65 + optIdx)}
+                            </span>
+                            <span class="text-slate-200 group-hover:text-white font-bold text-lg transition-colors">${opt}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+        updateNavigation();
+    }
+
+    function updateNavigation() {
+        const isLast = currentQuestionIdx === questions.length - 1;
+        document.getElementById('nextBtn').style.display = isLast ? 'none' : 'flex';
+        document.getElementById('submitBtn').style.display = isLast ? 'flex' : 'none';
+        
+        const prevBtn = document.getElementById('prevBtn');
+        if(currentQuestionIdx === 0) {
+            prevBtn.classList.add('opacity-30', 'pointer-events-none');
+        } else {
+            prevBtn.classList.remove('opacity-30', 'pointer-events-none');
+        }
+    }
+
+    function selectOption(qIdx, optIdx) {
+        userAnswers[qIdx] = optIdx;
+        renderQuestion();
+    }
+
+    function nextQuestion() {
+        if (userAnswers[currentQuestionIdx] === undefined) {
+            Swal.fire({ icon: 'warning', title: 'عذراً!', text: 'يجب اختيار إجابة للمتابعة', timer: 1500, showConfirmButton: false });
+            return;
+        }
+        if (currentQuestionIdx < questions.length - 1) {
+            currentQuestionIdx++;
+            renderQuestion();
+        }
+    }
+
+    function prevQuestion() {
+        if (currentQuestionIdx > 0) {
+            currentQuestionIdx--;
+            renderQuestion();
+        }
+    }
+
+    function startTimer() {
+        const timerEl = document.getElementById('timer');
+        timerInterval = setInterval(() => {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            timerEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            if (timeLeft <= 60) timerEl.classList.add('text-red-500', 'animate-pulse');
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                submitQuiz(true);
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    function confirmSubmit() {
+        if (userAnswers[currentQuestionIdx] === undefined) {
+             Swal.fire({ icon: 'warning', title: 'تنبيه', text: 'في اسئلة لم يتم الإجابة عليها!' });
+             return;
+        }
+        Swal.fire({
+            title: 'تأكيد التسليم',
+            text: "هل راجعت إجاباتك جيداً؟",
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonText: 'نعم، سلم الآن',
+            cancelButtonText: 'مراجعة',
+            confirmButtonColor: '#059669'
+        }).then((res) => { if(res.isConfirmed) submitQuiz(); });
+    }
+
+    async function submitQuiz(isAuto = false) {
+        clearInterval(timerInterval);
+        Swal.fire({ title: 'جاري التصحيح وحفظ الإجابات...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+
+        const formattedAnswers = {};
+        questions.forEach((q, idx) => {
+            const opts = q.options || q.choices || [];
+            // إرسال النص الفعلي للإجابة المختارة ليقوم السيرفر بمطابقته وحفظه
+            formattedAnswers[idx] = userAnswers[idx] !== undefined ? String(opts[userAnswers[idx]]).trim() : "N/A";
+        });
+
+        try {
+            const response = await fetch('/api/student/submit-quiz', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({
+                    quizId: quizId,
+                    studentId: userId,
+                    answers: formattedAnswers
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                Swal.fire({
+                    title: result.percentage >= 50 ? 'زي الفل! 🎉' : 'انتهى الاختبار',
+                    html: `
+                        <div class="py-4">
+                            <div class="text-6xl font-black text-indigo-500 mb-2">${result.percentage}%</div>
+                            <div class="text-slate-400 font-bold">حصلت على ${result.score} من ${result.total}</div>
+                            <p class="text-emerald-400 mt-4 text-sm font-bold italic">تم حفظ إجاباتك لمراجعتها مع التفسير من لوحة الطالب</p>
+                        </div>`,
+                    icon: result.percentage >= 50 ? 'success' : 'info',
+                    confirmButtonText: 'العودة للمنصة',
+                    allowOutsideClick: false
+                }).then(() => window.location.href = 'student-dashboard.html');
+            } else {
+                throw new Error(result.message);
+            }
+        } catch (error) {
+            Swal.fire('خطأ', error.message || 'حدث خطأ أثناء الحفظ', 'error');
+        }
+    }
+
+    window.onload = fetchQuiz;
+</script>
+</body>
+</html>

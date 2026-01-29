@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة إدارة مستر وليد | Premium Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --bg-dark: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+        }
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: radial-gradient(circle at top left, #1e1b4b, #0f172a);
+            color: #f8fafc;
+            min-height: 100vh;
+        }
+        .sidebar {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(15px);
+            border-left: 1px solid rgba(255,255,255,0.05);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .nav-link {
+            transition: 0.3s;
+            border-radius: 12px;
+            margin: 4px 12px;
+        }
+        .nav-link.active {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+        .glass-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 24px;
+        }
+        .stat-card {
+            transition: transform 0.3s;
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.8));
+        }
+        .stat-card:hover { transform: translateY(-5px); }
+        .section { display: none; animation: fadeIn 0.5s ease-out; }
+        .section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        input, select, textarea {
+            background: rgba(15, 23, 42, 0.6) !important;
+            border: 1px solid rgba(255,255,255,0.1) !important;
+            color: white !important;
+            border-radius: 12px !important;
+        }
+        input:focus, textarea:focus { border-color: var(--primary) !important; outline: 2px solid var(--primary); outline-offset: 1px; }
+        .custom-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+        .custom-table tr { background: rgba(30, 41, 59, 0.4); transition: 0.3s; }
+        .custom-table tr:hover { background: rgba(30, 41, 59, 0.8); }
+        .custom-table td, .custom-table th { padding: 16px; text-align: right; }
+        .custom-table th { color: #94a3b8; font-weight: 400; }
+        .custom-table td:first-child { border-radius: 0 12px 12px 0; }
+        .custom-table td:last-child { border-radius: 12px 0 0 12px; }
+
+        @media print { .sidebar, .no-print { display: none !important; } .main-content { margin: 0 !important; width: 100% !important; } }
+        
+        /* ستايل التبويبات الجديد */
+        .grade-tab.active { background: var(--primary); color: white; }
+        .absent-tab.active { background: #ef4444; border-color: #f87171; }
+    </style>
+</head>
+<body class="flex overflow-x-hidden">
+
+    <aside class="sidebar fixed w-64 h-full z-50">
+        <div class="p-8 text-center border-b border-white/5">
+            <h2 class="text-4xl font-black mb-4">أهلاً بشمهندس عبدو.. 👑</h2>
+            <p class="text-xs text-slate-400 mt-2 italic">لوحه تحكمك يا هندسه</p>
+        </div>
+        
+        <nav class="mt-8">
+            <a onclick="show('home')" class="nav-link flex items-center p-4 text-slate-300 hover:text-white cursor-pointer active" id="btn-home">
+                <i class="fas fa-home w-8"></i> الرئيسية
+            </a>
+            <a onclick="show('add-lesson')" class="nav-link flex items-center p-4 text-slate-300 hover:text-white cursor-pointer" id="btn-add-lesson">
+                <i class="fas fa-play-circle w-8"></i> إضافة محاضرة
+            </a>
+            <a onclick="show('add-quiz')" class="nav-link flex items-center p-4 text-slate-300 hover:text-white cursor-pointer" id="btn-add-quiz">
+                <i class="fas fa-question-circle w-8"></i> إضافة اختبار
+            </a>
+            <a onclick="show('add-pdf')" class="nav-link flex items-center p-4 text-slate-300 hover:text-white cursor-pointer" id="btn-add-pdf">
+                <i class="fas fa-file-pdf w-8"></i>  المحاضراتPDF
+            </a>
+            <a onclick="show('codes')" class="nav-link flex items-center p-4 text-slate-300 hover:text-white cursor-pointer" id="btn-codes">
+                <i class="fas fa-ticket-alt w-8"></i> توليد الأكواد
+            </a>
+            <a onclick="show('students')" class="nav-link flex items-center p-4 text-slate-300 hover:text-white cursor-pointer" id="btn-students">
+                <i class="fas fa-user-graduate w-8"></i> كشف الطلاب
+            </a>
+            <a onclick="show('absent')" class="nav-link flex items-center p-4 text-slate-300 hover:text-white cursor-pointer" id="btn-absent">
+                <i class="fas fa-user-times w-8"></i> كشف الغياب
+            </a>
+            <div class="mt-20 border-t border-white/5 pt-4">
+                <a onclick="logout()" class="nav-link flex items-center p-4 text-red-400 hover:bg-red-500/10 cursor-pointer">
+                    <i class="fas fa-sign-out-alt w-8"></i> تسجيل الخروج
+                </a>
+            </div>
+        </nav>
+    </aside>
+
+    <main class="main-content flex-1 mr-64 p-8 min-h-screen">
+        
+        <div class="flex justify-between items-center mb-10 no-print">
+            <div>
+                <h1 id="page-title" class="text-3xl font-black text-white">الرئيسية</h1>
+                <p id="current-date" class="text-indigo-400 text-sm mt-1"></p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-indigo-500/10 border border-indigo-500/20 px-4 py-2 rounded-2xl flex items-center gap-2">
+                    <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                    <span class="text-xs font-bold text-indigo-300">النظام متصل</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10 no-print">
+            <div class="stat-card glass-card p-6 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-500/20 flex items-center justify-center text-indigo-400"><i class="fas fa-users text-xl"></i></div>
+                <div><p class="text-slate-400 text-xs">إجمالي الطلاب</p><h3 id="stat-students" class="text-2xl font-black">0</h3></div>
+            </div>
+            <div class="stat-card glass-card p-6 flex items-center gap-4">
+                <div class="w-12 h-12 rounded-2xl bg-purple-500/20 flex items-center justify-center text-purple-400"><i class="fas fa-video text-xl"></i></div>
+                <div><p class="text-slate-400 text-xs">عدد الدروس</p><h3 id="stat-lessons" class="text-2xl font-black">0</h3></div>
+            </div>
+            <div class="stat-card glass-card p-6 flex items-center gap-4 border-b-4 border-green-500/30">
+                <div class="w-12 h-12 rounded-2xl bg-green-500/20 flex items-center justify-center text-green-400"><i class="fas fa-check-circle text-xl"></i></div>
+                <div><p class="text-slate-400 text-xs">أكواد مستخدمة</p><h3 id="stat-used" class="text-2xl font-black">0</h3></div>
+            </div>
+            <div class="stat-card glass-card p-6 flex items-center gap-4 border-b-4 border-orange-500/30">
+                <div class="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center text-orange-400"><i class="fas fa-tags text-xl"></i></div>
+                <div><p class="text-slate-400 text-xs">أكواد متاحة</p><h3 id="stat-available" class="text-2xl font-black">0</h3></div>
+            </div>
+        </div>
+
+        <div id="home" class="section active">
+            <div class="glass-card p-10 text-center mb-8 relative overflow-hidden">
+                <div class="relative z-10">
+                   <h2 class="text-2xl font-black">بشمهندس عبدو 📐</h2>
+                    <p class="text-slate-400 max-w-xl mx-auto">منور لوحه التحكم يا هندسه </p>
+                </div>
+                <div class="absolute -right-20 -top-20 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl"></div>
+            </div>
+        </div>
+
+        <div id="add-lesson" class="section">
+            <div class="glass-card p-8 max-w-4xl mx-auto">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-indigo-500/20 rounded-xl text-indigo-400"><i class="fas fa-plus-circle text-xl"></i></div>
+                    <h2 class="text-2xl font-bold">نشر محاضرة فيديو جديدة</h2>
+                </div>
+                <form id="lessonForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">الصف الدراسي</label>
+                            <select id="l-grade" class="w-full p-4">
+                                <optgroup label="الإعدادية">
+                                    <option value="1-prep">1 إعدادي</option>
+                                    <option value="2-prep">2 إعدادي</option>
+                                    <option value="3-prep">3 إعدادي</option>
+                                </optgroup>
+                                <optgroup label="الثانوية">
+                                    <option value="1-sec">1 ثانوي</option>
+                                    <option value="2-sec">2 ثانوي</option>
+                                    <option value="3-sec">3 ثانوي</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">الشهر</label>
+                            <select id="l-month" class="w-full p-4 month-selector"></select> 
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">الفرع</label>
+                            <select id="l-branch" class="w-full p-4">
+                                <option value="جبر">جبر</option><option value="هندسة">هندسة</option><option value="حساب مثلثات">حساب مثلثات</option>
+                                <option value="تفاضل">تفاضل</option><option value="استاتيكا">استاتيكا</option><option value="ديناميكا">ديناميكا</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400 mr-2">عنوان الدرس</label>
+                        <input type="text" id="l-title" class="w-full p-4" placeholder="مثلاً: حل معادلات الدرجة الثانية">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400 mr-2">رابط الفيديو (Embed Link)</label>
+                        <input type="text" id="l-video" class="w-full p-4 font-mono text-sm" placeholder="https://www.youtube.com/embed/...">
+                    </div>
+                    <button type="submit" id="l-btn" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl transition shadow-lg shadow-indigo-600/20">
+                        <i class="fas fa-paper-plane ml-2"></i> نشر المحاضرة الآن
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="add-quiz" class="section">
+            <div class="glass-card p-8 max-w-4xl mx-auto">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-purple-500/20 rounded-xl text-purple-400"><i class="fas fa-tasks text-xl"></i></div>
+                    <h2 class="text-2xl font-bold">إنشاء اختبار إلكتروني جديد</h2>
+                </div>
+                <form id="quizForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">الصف الدراسي</label>
+                            <select id="q-grade" class="w-full p-4" onchange="updateLessonList('q')">
+                                <option value="1-prep">1 إعدادي</option>
+                                <option value="2-prep">2 إعدادي</option>
+                                <option value="3-prep">3 إعدادي</option>
+                                <option value="1-sec">1 ثانوي</option>
+                                <option value="2-sec">2 ثانوي</option>
+                                <option value="3-sec">3 ثانوي</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">اختيار الشهر</label>
+                            <select id="q-month" class="w-full p-4 month-selector" onchange="updateLessonList('q')"></select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">ربط بمحاضرة (اختر المحاضرة)</label>
+                            <select id="q-lesson" class="w-full p-4 lesson-loader">
+                                <option value="standalone">اختبار شامل منفصل</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">عنوان الاختبار</label>
+                            <input type="text" id="q-title" class="w-full p-4" placeholder="مثلاً: اختبار على درس المصفوفات">
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">مدة الاختبار (بالدقائق)</label>
+                            <input type="number" id="q-time" class="w-full p-4" placeholder="30">
+                        </div>
+                    </div>
+
+                    <div class="border-t border-white/10 pt-6">
+                        <h3 class="text-lg font-bold mb-4 text-indigo-400"><i class="fas fa-list-ol ml-2"></i> أسئلة الاختبار</h3>
+                        <div id="questions-container" class="space-y-6"></div>
+                        
+                        <div class="mt-6 p-6 bg-white/5 rounded-2xl border border-dashed border-white/20">
+                            <h4 class="text-sm font-bold mb-4 text-indigo-300">أضف سؤالاً جديداً:</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <textarea id="temp-q-text" class="w-full p-4" placeholder="اكتب نص السؤال هنا..." rows="2"></textarea>
+                                <input type="text" id="temp-q-image" class="w-full p-4" placeholder="رابط صورة السؤال (اختياري) - https://...">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <input type="text" id="temp-opt-0" class="p-3 text-sm" placeholder="الاختيار الأول (A)">
+                                <input type="text" id="temp-opt-1" class="p-3 text-sm" placeholder="الاختيار الثاني (B)">
+                                <input type="text" id="temp-opt-2" class="p-3 text-sm" placeholder="الاختيار الثالث (C)">
+                                <input type="text" id="temp-opt-3" class="p-3 text-sm" placeholder="الاختيار الرابع (D)">
+                            </div>
+                            <div class="grid grid-cols-1 gap-4 mb-4">
+                                <textarea id="temp-q-explanation" class="w-full p-3 text-sm" placeholder="تفسير الإجابة (سيظهر للطالب عند مراجعة حله)..." rows="2"></textarea>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <select id="temp-correct" class="flex-1 p-3 text-sm">
+                                    <option value="">حدد الإجابة الصحيحة...</option>
+                                    <option value="0">الاختيار الأول (A)</option>
+                                    <option value="1">الاختيار الثاني (B)</option>
+                                    <option value="2">الاختيار الثالث (C)</option>
+                                    <option value="3">الاختيار الرابع (D)</option>
+                                </select>
+                                <button type="button" onclick="addQuestionToQuiz()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 rounded-xl text-sm font-bold transition">
+                                    <i class="fas fa-plus ml-2"></i> إضافة السؤال
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full py-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-2xl transition shadow-lg shadow-purple-600/20">
+                        <i class="fas fa-save ml-2"></i> حفظ ونشر الاختبار النهائي
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="add-pdf" class="section">
+            <div class="glass-card p-8 max-w-4xl mx-auto">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="p-3 bg-red-500/20 rounded-xl text-red-400"><i class="fas fa-file-pdf text-xl"></i></div>
+                    <h2 class="text-2xl font-bold">رفع ملازم وملفات PDF</h2>
+                </div>
+                <form id="pdfForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">الصف الدراسي</label>
+                            <select id="pdf-grade" class="w-full p-4" onchange="updateLessonList('pdf')">
+                                <option value="1-prep">1 إعدادي</option>
+                                <option value="2-prep">2 إعدادي</option>
+                                <option value="3-prep">3 إعدادي</option>
+                                <option value="1-sec">1 ثانوي</option>
+                                <option value="2-sec">2 ثانوي</option>
+                                <option value="3-sec">3 ثانوي</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">اختيار الشهر</label>
+                            <select id="pdf-month" class="w-full p-4 month-selector" onchange="updateLessonList('pdf')"></select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="text-sm text-slate-400 mr-2">ربط بمحاضرة (اختر المحاضرة)</label>
+                            <select id="pdf-lesson" class="w-full p-4 lesson-loader">
+                                <option value="general">اختر المحاضرة المستهدفة...</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400 mr-2">عنوان الملف (مثلاً: ملزمة المراجعة النهائية)</label>
+                        <input type="text" id="pdf-title" class="w-full p-4">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-sm text-slate-400 mr-2">رابط الملف (Google Drive / Direct)</label>
+                        <input type="text" id="pdf-url" class="w-full p-4" placeholder="https://drive.google.com/...">
+                    </div>
+                    <button type="submit" class="w-full py-4 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl transition shadow-lg shadow-red-600/20">
+                        <i class="fas fa-cloud-upload-alt ml-2"></i> رفع الملف الآن
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="codes" class="section">
+            <div class="glass-card p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-2xl font-bold italic text-indigo-400 underline decoration-indigo-500/30 underline-offset-8">توليد أكواد التفعيل الذكية</h2>
+                    <div class="flex gap-2">
+                        <button onclick="window.print()" class="no-print p-3 bg-slate-700 hover:bg-slate-600 rounded-xl transition text-sm"><i class="fas fa-print"></i></button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <select id="c-grade" class="p-3">
+                        <optgroup label="الإعدادية">
+                            <option value="1-prep">1 إعدادي</option>
+                            <option value="2-prep">2 إعدادي</option>
+                            <option value="3-prep">3 إعدادي</option>
+                        </optgroup>
+                        <optgroup label="الثانوية">
+                            <option value="1-sec">1 ثانوي</option>
+                            <option value="2-sec">2 ثانوي</option>
+                            <option value="3-sec">3 ثانوي</option>
+                        </optgroup>
+                    </select>
+                    <select id="c-month" class="p-3 month-selector"></select>
+                    <select id="c-branch" class="p-3">
+                        <option value="اشتراك شهري">اشتراك شهري كامل</option>
+                        <option value="مراجعة نهائية">مراجعة نهائية</option>
+                    </select>
+                    <input type="number" id="c-num" value="50" class="p-3" placeholder="الكمية">
+                </div>
+                
+                <button onclick="generateCodesServer()" id="c-btn" class="w-full py-4 bg-purple-600 hover:bg-purple-700 rounded-2xl font-bold shadow-xl shadow-purple-600/20 transition mb-10">
+                    <i class="fas fa-magic ml-2"></i> توليد وحفظ في قاعدة البيانات
+                </button>
+
+                <div id="codes-box" style="display:none;" class="print-area">
+                    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3" id="codes-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="students" class="section">
+            <div class="glass-card p-8 overflow-hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                    <h2 class="text-2xl font-bold">كشف الطلاب والدرجات 📊</h2>
+                    <div class="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto">
+                        <button onclick="filterStudentsByGrade('all')" class="grade-tab px-3 py-1.5 rounded-lg text-xs font-bold active bg-indigo-600">الكل</button>
+                        <button onclick="filterStudentsByGrade('1-prep')" class="grade-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10">1 ع</button>
+                        <button onclick="filterStudentsByGrade('2-prep')" class="grade-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10">2 ع</button>
+                        <button onclick="filterStudentsByGrade('3-prep')" class="grade-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10">3 ع</button>
+                        <button onclick="filterStudentsByGrade('1-sec')" class="grade-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10">1 ث</button>
+                        <button onclick="filterStudentsByGrade('2-sec')" class="grade-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10">2 ث</button>
+                        <button onclick="filterStudentsByGrade('3-sec')" class="grade-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10">3 ث</button>
+                    </div>
+                    <input type="text" id="studentSearch" onkeyup="searchStudent()" placeholder="بحث بالاسم أو الرقم..." class="p-2 text-sm w-64 border-white/5">
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>الطالب</th><th>المرحلة</th><th>الموبايل</th><th>ولي الأمر</th><th>آخر درجة</th><th>الحالة</th><th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="absent" class="section">
+            <div class="glass-card p-8 overflow-hidden">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8">
+                    <h2 class="text-2xl font-bold text-red-400">كشف الغياب ( الامتحانات) ⚠️</h2>
+                    <div class="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10 overflow-x-auto">
+                        <button onclick="selectAbsentGrade('1-prep')" class="absent-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10 border border-white/5">1 ع</button>
+                        <button onclick="selectAbsentGrade('2-prep')" class="absent-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10 border border-white/5">2 ع</button>
+                        <button onclick="selectAbsentGrade('3-prep')" class="absent-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10 border border-white/5">3 ع</button>
+                        <button onclick="selectAbsentGrade('1-sec')" class="absent-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10 border border-white/5">1 ث</button>
+                        <button onclick="selectAbsentGrade('2-sec')" class="absent-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10 border border-white/5">2 ث</button>
+                        <button onclick="selectAbsentGrade('3-sec')" class="absent-tab px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/10 border border-white/5">3 ث</button>
+                    </div>
+                </div>
+
+                <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-2">
+                        <label class="text-xs text-slate-400">اختر الامتحان المطلوب متابعة غيابه:</label>
+                        <select id="absent-quiz-selector" onchange="filterAbsentByQuiz()" class="w-full p-3 bg-white/5 border border-white/10 rounded-xl text-sm">
+                            <option value="">   اختار الصف الاول...</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end pb-1">
+                        <p id="absent-count" class="text-xs text-slate-400"></p>
+                    </div>
+                </div>
+
+                <div id="absent-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <p class="text-slate-500 text-center col-span-full py-10 italic">اختر الصف الدراسي والامتحان لعرض الغائبين...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const token = localStorage.getItem('token');
+        const gradesMap = {
+            '1-prep': '1 إعدادي', '2-prep': '2 إعدادي', '3-prep': '3 إعدادي',
+            '1-sec': '1 ثانوي', '2-sec': '2 ثانوي', '3-sec': '3 ثانوي'
+        };
+
+        let currentQuestions = [];
+        let allStudentsData = []; // تخزين مؤقت لكل الطلاب لسرعة الفلترة
+        let selectedAbsentGrade = "";
+
+        window.onload = async () => {
+            if (localStorage.getItem('role') !== 'admin') window.location.href = 'login.html';
+            fillMonths();
+            await loadStats();
+            document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-EG', {weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'});
+        };
+
+        function fillMonths() {
+            const selectors = document.querySelectorAll('.month-selector');
+            const months = ["أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر", "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو"];
+            const currentMonthIdx = new Date().getMonth();
+            const monthNameMapping = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+            
+            selectors.forEach(sel => {
+                sel.innerHTML = months.map(m => `<option value="${m}">${m}</option>`).join('');
+                sel.value = monthNameMapping[currentMonthIdx];
+            });
+        }
+
+        async function updateLessonList(prefix) {
+            const month = document.getElementById(`${prefix}-month`).value;
+            const grade = document.getElementById(`${prefix}-grade`).value;
+            const lessonSelect = document.getElementById(`${prefix}-lesson`);
+            
+            lessonSelect.innerHTML = `<option value="general">جاري تحميل محاضرات ${month}...</option>`;
+            
+            try {
+                const res = await fetch(`/api/admin/lessons-by-month?month=${encodeURIComponent(month)}&grade=${grade}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                let html = `<option value="standalone">${prefix === 'q' ? 'اختبار شامل منفصل' : 'ملف PDF شامل منفصل'}</option>`;
+                
+                if(data.success && data.lessons && data.lessons.length > 0) {
+                    data.lessons.forEach(lesson => {
+                        html += `<option value="${lesson._id}">${lesson.title} (${lesson.branch})</option>`;
+                    });
+                }
+                lessonSelect.innerHTML = html;
+            } catch (err) {
+                lessonSelect.innerHTML = `<option value="standalone">فشل تحميل الدروس</option>`;
+            }
+        }
+
+        function show(id) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            
+            const targetSection = document.getElementById(id);
+            const targetBtn = document.getElementById('btn-' + id);
+            
+            if(targetSection) targetSection.classList.add('active');
+            if(targetBtn) {
+                targetBtn.classList.add('active');
+                document.getElementById('page-title').innerText = targetBtn.innerText.trim();
+            }
+            
+            if(id === 'students' || id === 'absent') loadStudents();
+            if(id === 'add-quiz') updateLessonList('q');
+            if(id === 'add-pdf') updateLessonList('pdf');
+        }
+
+        function addQuestionToQuiz() {
+            const text = document.getElementById('temp-q-text').value;
+            const image = document.getElementById('temp-q-image').value;
+            const explanation = document.getElementById('temp-q-explanation').value;
+            const opts = [
+                document.getElementById('temp-opt-0').value,
+                document.getElementById('temp-opt-1').value,
+                document.getElementById('temp-opt-2').value,
+                document.getElementById('temp-opt-3').value
+            ];
+            const correctIndex = document.getElementById('temp-correct').value;
+
+            if(!text || opts.some(o => !o) || correctIndex === "") {
+                alert("برجاء ملء نص السؤال وجميع الاختيارات وتحديد الإجابة الصحيحة");
+                return;
+            }
+            const correctAnswerText = opts[parseInt(correctIndex)];
+            currentQuestions.push({ question: text, questionImage: image, explanation: explanation, options: opts, correctAnswer: correctAnswerText });
+            renderQuestionsPreview();
+            ['temp-q-text','temp-q-image','temp-q-explanation','temp-opt-0','temp-opt-1','temp-opt-2','temp-opt-3','temp-correct'].forEach(id=>document.getElementById(id).value='');
+        }
+
+        function renderQuestionsPreview() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = currentQuestions.map((q, idx) => `
+                <div class="p-4 bg-white/5 border border-white/10 rounded-xl relative group">
+                    <button type="button" onclick="removeQuestion(${idx})" class="absolute left-4 top-4 text-red-400 opacity-0 group-hover:opacity-100 transition"><i class="fas fa-trash"></i></button>
+                    <p class="text-sm font-bold mb-2 text-indigo-300 flex items-center gap-2">
+                        سؤال ${idx + 1}: ${q.question}
+                        ${q.questionImage ? '<i class="fas fa-image text-xs text-slate-500"></i>' : ''}
+                    </p>
+                    <div class="grid grid-cols-2 gap-2 text-xs text-slate-400 mb-2">
+                        ${q.options.map((o, i) => `<div class="${o === q.correctAnswer ? 'text-green-400 font-bold' : ''}">${String.fromCharCode(65+i)}) ${o}</div>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function removeQuestion(index) { currentQuestions.splice(index, 1); renderQuestionsPreview(); }
+
+        document.getElementById('lessonForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const lessonData = { title: document.getElementById('l-title').value, videoUrl: document.getElementById('l-video').value, grade: document.getElementById('l-grade').value, branch: document.getElementById('l-branch').value, month: document.getElementById('l-month').value };
+            try {
+                const res = await fetch('/api/admin/add-lesson', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(lessonData) });
+                const data = await res.json();
+                alert(data.message);
+                if(data.success) { e.target.reset(); loadStats(); }
+            } catch (err) { alert("خطأ في الاتصال"); }
+        };
+
+        document.getElementById('quizForm').onsubmit = async (e) => {
+            e.preventDefault();
+            if(currentQuestions.length === 0) { alert("أضف سؤالاً أولاً"); return; }
+            const quizData = { title: document.getElementById('q-title').value, grade: document.getElementById('q-grade').value, month: document.getElementById('q-month').value, lessonId: document.getElementById('q-lesson').value, examDuration: document.getElementById('q-time').value, quiz: currentQuestions };
+            try {
+                const res = await fetch('/api/admin/add-quiz', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(quizData) });
+                const data = await res.json();
+                alert(data.message);
+                if(data.success) { e.target.reset(); currentQuestions = []; renderQuestionsPreview(); }
+            } catch (err) { alert("خطأ في الحفظ"); }
+        };
+
+        document.getElementById('pdfForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const pdfData = { title: document.getElementById('pdf-title').value, month: document.getElementById('pdf-month').value, lessonId: document.getElementById('pdf-lesson').value, grade: document.getElementById('pdf-grade').value, url: document.getElementById('pdf-url').value };
+            try {
+                const res = await fetch('/api/admin/add-pdf', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(pdfData) });
+                const data = await res.json();
+                alert(data.message);
+                if(data.success) e.target.reset();
+            } catch (err) { alert("خطأ في الرفع"); }
+        };
+
+        async function generateCodesServer() {
+            const btn = document.getElementById('c-btn');
+            btn.disabled = true;
+            const config = { count: document.getElementById('c-num').value, grade: document.getElementById('c-grade').value, branch: document.getElementById('c-branch').value, month: document.getElementById('c-month').value };
+            try {
+                const res = await fetch('/api/admin/generate-codes', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }, body: JSON.stringify(config) });
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('codes-box').style.display = 'block';
+                    document.getElementById('codes-list').innerHTML = data.generatedCodes.map(c => `<div class="p-3 bg-white/5 border border-white/10 rounded-xl text-center"><span class="block font-mono font-bold text-indigo-400 text-lg">${c}</span><span class="text-[10px] text-slate-500">${config.month}</span></div>`).join('');
+                    loadStats();
+                }
+            } catch (err) { alert("فشل التوليد"); }
+            finally { btn.disabled = false; }
+        }
+
+        async function loadStudents() {
+            const table = document.getElementById('students-table');
+            if(allStudentsData.length === 0) table.innerHTML = "<tr><td colspan='7' class='text-center py-10 opacity-50'>جاري التحميل...</td></tr>";
+            try {
+                const res = await fetch('/api/admin/students-report', { headers: { 'Authorization': `Bearer ${token}` } });
+                allStudentsData = await res.json();
+                renderFilteredStudents('all');
+            } catch (err) { table.innerHTML = "<tr><td colspan='7' class='text-center'>خطأ في تحميل البيانات</td></tr>"; }
+        }
+
+        function filterStudentsByGrade(grade) {
+            document.querySelectorAll('.grade-tab').forEach(btn => btn.classList.remove('bg-indigo-600'));
+            event.target.classList.add('bg-indigo-600');
+            renderFilteredStudents(grade);
+        }
+
+        function renderFilteredStudents(grade) {
+            const table = document.getElementById('students-table');
+            const filtered = grade === 'all' ? allStudentsData : allStudentsData.filter(s => s.grade === grade);
+            table.innerHTML = filtered.map(s => `
+                <tr class="${s.isSuspended ? 'opacity-60 bg-red-500/5' : ''}">
+                    <td class="font-bold">${s.name}</td>
+                    <td><span class="px-2 py-1 bg-indigo-500/20 text-indigo-300 rounded-lg text-xs">${gradesMap[s.grade] || s.grade}</span></td>
+                    <td>${s.phone}</td>
+                    <td>${s.parentPhone}</td>
+                    <td class="text-green-400 font-bold">${s.lastGrade || '0'}%</td>
+                    <td>
+                        <span class="px-2 py-1 rounded-lg text-[10px] font-bold ${s.isSuspended ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'}">
+                            ${s.isSuspended ? 'معلق' : 'نشط'}
+                        </span>
+                    </td>
+                    <td>
+                        <button onclick="toggleStudentStatus('${s._id}', ${s.isSuspended})" 
+                                class="mx-1 p-2 rounded-lg transition ${s.isSuspended ? 'text-green-400 hover:bg-green-500/10' : 'text-orange-400 hover:bg-orange-500/10'}" 
+                                title="${s.isSuspended ? 'فك التعليق' : 'تعليق الحساب'}">
+                            <i class="fas ${s.isSuspended ? 'fa-user-check' : 'fa-user-slash'}"></i>
+                        </button>
+                        <button class="text-indigo-400 mx-1"><i class="fas fa-edit"></i></button>
+                        <button class="text-red-400 mx-1"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function toggleStudentStatus(studentId, currentStatus) {
+            const action = currentStatus ? "فك تعليق" : "تعليق";
+            if(!confirm(`هل أنت متأكد من ${action} حساب هذا الطالب؟`)) return;
+
+            try {
+                const res = await fetch(`/api/admin/toggle-student-status/${studentId}`, {
+                    method: 'PUT',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify({ isSuspended: !currentStatus })
+                });
+                
+                const data = await res.json();
+                if(data.success) {
+                    alert(`تم ${action} الحساب بنجاح ✅`);
+                    loadStudents();
+                } else {
+                    alert(data.message || "فشل تنفيذ الإجراء");
+                }
+            } catch (err) {
+                alert("خطأ في الاتصال بالسيرفر");
+            }
+        }
+
+        async function selectAbsentGrade(grade) {
+            selectedAbsentGrade = grade;
+            document.querySelectorAll('.absent-tab').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const selector = document.getElementById('absent-quiz-selector');
+            selector.innerHTML = `<option value="">جاري تحميل امتحانات ${gradesMap[grade]}...</option>`;
+
+            try {
+                const res = await fetch(`/api/admin/quizzes-by-grade?grade=${grade}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                
+                if (data.success && data.quizzes.length > 0) {
+                    let html = `<option value="">-- اختر الامتحان من هنا --</option>`;
+                    data.quizzes.forEach(q => {
+                        html += `<option value="${q._id}">${q.title} (${q.month})</option>`;
+                    });
+                    selector.innerHTML = html;
+                } else {
+                    selector.innerHTML = `<option value="">لا توجد امتحانات مضافة لهذا الصف</option>`;
+                }
+            } catch (err) {
+                selector.innerHTML = `<option value="">خطأ في تحميل الامتحانات</option>`;
+            }
+            document.getElementById('absent-container').innerHTML = "<p class='col-span-full text-center text-slate-500 py-10'>تم تحديث القائمة، اختر امتحاناً الآن.</p>";
+        }
+
+        function filterAbsentByQuiz() {
+            const quizId = document.getElementById('absent-quiz-selector').value;
+            const container = document.getElementById('absent-container');
+            
+            if (!quizId) return;
+
+            const absentStudents = allStudentsData.filter(student => {
+                if (student.grade !== selectedAbsentGrade) return false;
+                const hasTakenQuiz = student.scores && student.scores.some(s => 
+                    (s.quizId && String(s.quizId) === String(quizId)) || 
+                    (s.lessonId && String(s.lessonId) === String(quizId))
+                );
+                return !hasTakenQuiz;
+            });
+
+            document.getElementById('absent-count').innerText = `عدد الغائبين: ${absentStudents.length} طالب`;
+
+            if (absentStudents.length === 0) {
+                container.innerHTML = "<p class='col-span-full text-center text-green-400 py-10'>ممتاز!       كل الطلاب هنا امتحنوا ✅</p>";
+                return;
+            }
+
+            container.innerHTML = absentStudents.map(s => `
+                <div class="glass-card p-4 border-r-4 border-red-500 flex justify-between items-center bg-white/5">
+                    <div>
+                        <h4 class="font-bold text-sm">${s.name}</h4>
+                        <p class="text-[10px] text-slate-400">موبايل: ${s.phone}</p>
+                    </div>
+                    <div class="flex gap-2">
+                         <a href="https://wa.me/2${s.parentPhone}" target="_blank" class="p-2 bg-green-500/20 text-green-400 rounded-lg hover:bg-green-500 hover:text-white transition text-xs">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                        <a href="tel:${s.parentPhone}" class="p-2 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500 hover:text-white transition text-xs">
+                            <i class="fas fa-phone-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/admin/stats', { headers: { 'Authorization': `Bearer ${token}` } });
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('stat-students').innerText = data.totalStudents || 0;
+                    document.getElementById('stat-lessons').innerText = data.totalLessons || 0;
+                    document.getElementById('stat-available').innerText = data.availableCodes || 0;
+                    document.getElementById('stat-used').innerText = data.usedCodes || 0;
+                }
+            } catch (e) { }
+        }
+
+        function searchStudent() {
+            let input = document.getElementById('studentSearch').value.toLowerCase();
+            let rows = document.getElementById('students-table').getElementsByTagName('tr');
+            for (let row of rows) { row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none"; }
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+    </script>
+</body>
+</html>

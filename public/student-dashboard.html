@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr Walid Mohamed Platform</title> 
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        body { 
+            font-family: 'Cairo', sans-serif; 
+            background: #f8fafc; 
+            color: #1e293b; 
+            user-select: none; 
+            -webkit-user-select: none;
+            overflow-x: hidden;
+        }
+        .month-section { 
+            background: #ffffff; 
+            border-right: 6px solid #4f46e5; 
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05); 
+        }
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(79, 70, 229, 0.1);
+        }
+        .lesson-card {
+            background: #ffffff;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-radius: 24px;
+            border: 1px solid #f1f5f9;
+        }
+        .lesson-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 25px 30px -10px rgba(79, 70, 229, 0.15);
+            border-color: #c7d2fe;
+        }
+        .month-card {
+            background: white;
+            border: 1px solid #f1f5f9;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-radius: 24px;
+        }
+        .month-card:hover {
+            border-color: #6366f1;
+            transform: scale(1.02);
+            background: #fcfdff;
+        }
+        .term-btn.active {
+            background: #4f46e5;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
+        }
+        .pulse-btn:hover {
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        .swal2-popup {
+            border-radius: 24px !important;
+        }
+        @media print {
+            body { display: none !important; }
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #4f46e5;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8" oncontextmenu="return false;">
+
+    <header class="max-w-7xl mx-auto mb-12" data-aos="fade-down">
+        <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+            <div class="text-right w-full md:w-auto">
+                <h2 class="text-indigo-600 font-black tracking-widest text-xs mb-2 flex items-center gap-2">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-indigo-600"></span>
+                    </span>
+                    MR WALID MOHAMED PLATFORM
+                </h2>
+                <h1 class="text-3xl md:text-5xl font-black text-slate-800">
+                    مرحباً، <span id="studentDisplayName" class="text-indigo-600">يا بطل</span>
+                </h1>
+                <div id="gradeInfo" class="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-700 text-sm font-bold">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span id="displayGrade">جاري التحميل...</span>
+                </div>
+            </div>
+            <button onclick="logout()" class="group flex items-center gap-3 px-6 py-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 hover:bg-red-600 hover:text-white transition-all duration-300">
+                <span class="font-bold text-sm">تسجيل الخروج</span>
+                <i class="fas fa-power-off group-hover:rotate-90 transition-transform"></i>
+            </button>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto">
+        <div id="activation-box" class="glass p-1 md:p-2 rounded-[32px] mb-12 border-2 border-white shadow-2xl overflow-hidden" data-aos="zoom-in">
+            <div class="bg-white/50 p-6 md:p-8 rounded-[28px] flex flex-col md:flex-row items-center gap-8">
+                <div class="text-center md:text-right flex-grow">
+                    <div class="bg-indigo-100 w-12 h-12 rounded-2xl flex items-center justify-center mb-4 mx-auto md:mx-0">
+                        <i class="fas fa-key text-indigo-600 text-xl"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">تفعيل محتوى جديد</h2>
+                    <p class="text-slate-500 font-medium mt-1">أدخل الكود الخاص بك لفتح محاضرات الشهر</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                    <input type="text" id="code-input" placeholder="MRW-XXXX-XXXX" 
+                        class="w-full md:w-80 bg-white border-2 border-slate-100 text-slate-800 rounded-2xl py-4 px-6 focus:outline-none focus:border-indigo-500 transition-all font-mono text-center text-lg tracking-widest shadow-inner">
+                    <button onclick="handleActivateCode()" 
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-black px-10 py-4 rounded-2xl transition-all shadow-lg shadow-indigo-200 flex items-center justify-center gap-3 pulse-btn">
+                        <span>تفعيل الكود</span> <i class="fas fa-bolt"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-8 mb-12" data-aos="fade-up">
+            <div class="flex flex-wrap items-center justify-between gap-6">
+                <div class="flex bg-slate-200/50 p-1.5 rounded-2xl border border-slate-200">
+                    <button onclick="toggleTerm(1)" id="term1-btn" class="term-btn px-8 py-3 rounded-xl text-sm font-black transition-all">الترم الأول</button>
+                    <button onclick="toggleTerm(2)" id="term2-btn" class="term-btn px-8 py-3 rounded-xl text-sm font-black transition-all text-slate-500">الترم الثاني</button>
+                </div>
+                <div class="flex flex-wrap gap-3">
+                    <button id="btn-lessons" onclick="toggleSection('lessons')" class="flex items-center gap-2 px-6 py-3.5 rounded-2xl font-black bg-indigo-600 text-white text-sm shadow-xl shadow-indigo-100"><i class="fas fa-book-open"></i> المحاضرات</button>
+                    <button id="btn-exams" onclick="toggleSection('exams')" class="flex items-center gap-2 px-6 py-3.5 rounded-2xl font-black bg-white border border-slate-200 text-slate-600 text-sm hover:bg-slate-50"><i class="fas fa-file-alt"></i> الامتحانات</button>
+                    <button id="btn-grades" onclick="toggleSection('grades')" class="flex items-center gap-2 px-6 py-3.5 rounded-2xl font-black bg-white border border-slate-200 text-slate-600 text-sm hover:bg-slate-50"><i class="fas fa-chart-pie"></i> درجاتي</button>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100 w-fit shadow-sm" id="filter-container">
+                <span class="text-sm text-slate-500 font-black"><i class="fas fa-filter text-indigo-500 ml-1"></i> تصفية المادة:</span>
+                <select id="branchFilter" onchange="filterLessons()" 
+                    class="bg-slate-50 border-none text-indigo-700 font-black px-4 py-2 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm cursor-pointer min-w-[160px]">
+                    <option value="all">كل الفروع</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="lessons-area">
+            <div id="months-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" data-aos="fade-up"></div>
+            <div id="month-detail-view" class="hidden">
+                <button onclick="showMonthCards()" class="mb-8 flex items-center gap-2 text-indigo-600 hover:translate-x-2 transition-transform font-black bg-indigo-50 px-6 py-3 rounded-2xl w-fit">
+                    <i class="fas fa-arrow-right"></i> العودة لقائمة الشهور
+                </button>
+                <div id="specific-month-container" class="space-y-12"></div>
+            </div>
+        </div>
+
+        <div id="exams-area" style="display: none;">
+            <div id="exams-months-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" data-aos="fade-up"></div>
+            <div id="exam-detail-view" class="hidden">
+                <button onclick="showExamMonthCards()" class="mb-8 flex items-center gap-2 text-indigo-600 hover:translate-x-2 transition-transform font-black bg-indigo-50 px-6 py-3 rounded-2xl w-fit">
+                    <i class="fas fa-arrow-right"></i> العودة لقائمة الشهور
+                </button>
+                <div id="specific-exam-month-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10"></div>
+            </div>
+        </div>
+
+        <div id="grades-area" style="display: none;" class="glass p-12 rounded-[40px] text-center">
+            <h3 class="text-slate-800 font-black mb-8 text-2xl flex items-center justify-center gap-3">
+                <i class="fas fa-star text-yellow-400"></i> سجل الإنجازات <i class="fas fa-star text-yellow-400"></i>
+            </h3>
+            <div id="grades-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="text-slate-400 italic py-10 col-span-full">لا توجد درجات مسجلة حالياً</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({ duration: 800, once: true });
+
+        const termMonths = {
+            1: ['أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر', 'يناير'],
+            2: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو']
+        };
+
+        const token = localStorage.getItem('token');
+        const userId = localStorage.getItem('userId');
+        const sessionId = localStorage.getItem('currentSessionId'); // جلب الجلسة الحالية
+
+        // --- حماية فورية للطالب المعلق وتعدد الأجهزة ---
+        (async function immediateSuspensionCheck() {
+            if (!token || !userId || userId === "undefined") {
+                window.location.href = 'login.html';
+                return;
+            }
+            try {
+                // نرسل الـ sessionId في الطلب للتأكد من الجهاز
+                const res = await fetch(`/api/student/my-lessons/${userId}?sessionId=${sessionId}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'session-id': sessionId,
+                        'user-id': userId
+                    }
+                });
+                const data = await res.json();
+
+                // لو السيرفر رد بـ kickOut اطرد المستخدم فوراً
+                if (data.kickOut) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                if (data.isSuspended === true) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                }
+            } catch (e) { console.log("Init check failed"); }
+        })();
+
+        let allLessons = []; 
+        let allQuizzes = []; 
+        let studentResults = []; 
+        let currentTerm = 1;
+
+        const d = new Date();
+        currentTerm = (d.getMonth() >= 1 && d.getMonth() <= 4) ? 2 : 1;
+
+        if (!token || !userId || userId === "undefined") window.location.href = 'login.html';
+
+        window.onload = async () => {
+            const name = localStorage.getItem('userName');
+            document.getElementById('studentDisplayName').innerText = name && name !== 'undefined' ? name : 'يا بطل';
+            await loadData();
+            toggleTerm(currentTerm);
+            
+            // فحص دوري كل 15 ثانية للطرد الفوري إذا تم تعليق الطالب أو دخل من جهاز آخر
+            setInterval(async () => { await loadData(true); }, 15000); 
+        };
+
+        async function loadData(isSilent = false) {
+            try {
+                // تحديث الـ fetch ليدعم فحص الجلسة
+                const res = await fetch(`/api/student/my-lessons/${userId}?sessionId=${sessionId}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'session-id': sessionId,
+                        'user-id': userId
+                    }
+                });
+                const data = await res.json();
+
+                // التحقق من تعدد الأجهزة
+                if (data.kickOut) {
+                    localStorage.clear();
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // التحقق من حالة التعليق
+                if (data.isSuspended === true) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'حساب معلق ⚠️',
+                        text: 'عذراً يا هندسة، تم تعليق حسابك من قبل الإدارة. يرجى التواصل مع الدعم الفني.',
+                        confirmButtonText: 'حسناً',
+                        confirmButtonColor: '#4f46e5',
+                        allowOutsideClick: false
+                    }).then(() => {
+                        localStorage.clear();
+                        window.location.href = 'login.html';
+                    });
+                    return; 
+                }
+
+                if (data.success) {
+                    const gradesMap = {
+                        '1-prep': 'الأول الإعدادي', '2-prep': 'الثاني الإعدادي', '3-prep': 'الثالث الإعدادي',
+                        '1-sec': 'الأول الثانوي', '2-sec': 'الثاني الثانوي', '3-sec': 'الثالث الثانوي'
+                    };
+                    document.getElementById('displayGrade').innerText = gradesMap[data.grade] || data.grade || "طالب متميز";
+                    allLessons = data.lessons;
+                    allQuizzes = data.quizzes || []; 
+                    studentResults = data.results || []; 
+                    updateBranchFilter(data.lessons);
+                    renderGrades(); 
+                    
+                    if (document.getElementById('lessons-area').style.display !== 'none') {
+                        if (!document.getElementById('months-grid').classList.contains('hidden')) {
+                            renderMonthCards(); 
+                        } else {
+                            const visibleHeader = document.querySelector('#specific-month-container h2');
+                            if (visibleHeader) openMonthDetail(visibleHeader.innerText.replace('محاضرات شهر ', '').trim());
+                        }
+                    } else if (document.getElementById('exams-area').style.display !== 'none') {
+                        if (!document.getElementById('exams-months-grid').classList.contains('hidden')) {
+                            renderExamMonthCards();
+                        } else {
+                            const visibleHeader = document.querySelector('#specific-exam-month-container h2');
+                            if (visibleHeader) openExamMonthDetail(visibleHeader.innerText.replace('امتحانات شهر ', '').trim());
+                        }
+                    }
+                }
+            } catch (e) { console.error("Error loading data", e); }
+        }
+
+        function renderGrades() {
+            const list = document.getElementById('grades-list');
+            if (studentResults.length === 0) {
+                list.innerHTML = `<div class="text-slate-400 italic py-10 col-span-full">لا توجد درجات مسجلة حالياً</div>`;
+                return;
+            }
+
+            list.innerHTML = studentResults.map(res => {
+                const percentage = parseFloat(res.percentage);
+                let statusClass = percentage >= 85 ? 'bg-green-50 border-green-100 text-green-700' : 'bg-orange-50 border-orange-100 text-orange-700';
+                let icon = percentage >= 85 ? 'fa-rocket' : 'fa-fire';
+                return `
+                    <div class="flex items-center justify-between p-5 rounded-2xl border ${statusClass}" data-aos="fade-up">
+                        <div class="text-right">
+                            <div class="font-black text-slate-800">${res.quizTitle}</div>
+                            <div class="text-xs mt-1 font-bold opacity-80"><i class="fas ${icon} ml-1"></i> ${percentage >= 85 ? 'أداء أسطوري!' : 'استمر بالمحاولة'}</div>
+                        </div>
+                        <div class="text-2xl font-black">
+                            ${res.score}<span class="text-sm opacity-60 mx-1">/</span>${res.total}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function toggleTerm(term) {
+            currentTerm = term;
+            document.getElementById('term1-btn').classList.toggle('active', term === 1);
+            document.getElementById('term2-btn').classList.toggle('active', term === 2);
+            showMonthCards();
+            showExamMonthCards();
+            renderMonthCards();
+            renderExamMonthCards();
+        }
+
+        function renderMonthCards() {
+            const grid = document.getElementById('months-grid');
+            const monthsInTerm = termMonths[currentTerm];
+            const activeMonths = [...new Set(allLessons.map(l => l.month))];
+            grid.innerHTML = monthsInTerm.map(month => {
+                const isActivated = activeMonths.includes(month);
+                return `
+                    <div class="month-card p-10 text-center relative overflow-hidden group shadow-lg" 
+                         onclick="handleMonthClick('${month}', ${isActivated})">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-indigo-50/50 opacity-0 group-hover:opacity-100 transition-all"></div>
+                        <div class="relative z-10">
+                            <div class="w-20 h-20 rounded-3xl mx-auto mb-6 flex items-center justify-center ${isActivated ? 'bg-indigo-600 shadow-indigo-200' : 'bg-slate-100'} shadow-xl transition-all group-hover:-translate-y-2">
+                                <i class="fas ${isActivated ? 'fa-calendar-check text-white' : 'fa-lock text-slate-400'} text-3xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-800">شهر ${month}</h3>
+                            <p class="text-sm mt-3 ${isActivated ? 'text-indigo-600' : 'text-slate-400'} font-black uppercase tracking-widest">
+                                ${isActivated ? 'تم التفعيل' : 'مغلق حالياً'}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderExamMonthCards() {
+            const grid = document.getElementById('exams-months-grid');
+            const monthsInTerm = termMonths[currentTerm];
+            const activeMonths = [...new Set(allQuizzes.map(q => q.month))];
+            grid.innerHTML = monthsInTerm.map(month => {
+                const isActivated = activeMonths.includes(month);
+                return `
+                    <div class="month-card p-10 text-center relative overflow-hidden group shadow-lg" 
+                         onclick="handleExamMonthClick('${month}', ${isActivated})">
+                        <div class="absolute inset-0 bg-gradient-to-b from-transparent to-indigo-50/50 opacity-0 group-hover:opacity-100 transition-all"></div>
+                        <div class="relative z-10">
+                            <div class="w-20 h-20 rounded-3xl mx-auto mb-6 flex items-center justify-center ${isActivated ? 'bg-indigo-600 shadow-indigo-200' : 'bg-slate-100'} shadow-xl transition-all group-hover:-translate-y-2">
+                                <i class="fas ${isActivated ? 'fa-file-signature text-white' : 'fa-lock text-slate-400'} text-3xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-black text-slate-800">امتحانات ${month}</h3>
+                            <p class="text-sm mt-3 ${isActivated ? 'text-indigo-600' : 'text-slate-400'} font-black uppercase tracking-widest">
+                                ${isActivated ? 'متاحة الآن' : 'غير متوفرة'}
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function handleMonthClick(month, isActivated) {
+            if (isActivated) openMonthDetail(month);
+            else promptActivation(month);
+        }
+
+        function handleExamMonthClick(month, isActivated) {
+            if (isActivated) openExamMonthDetail(month);
+            else Swal.fire({ icon: 'info', title: 'تنبيه', text: 'هذا الشهر غير متاح لك حالياً، يرجى تفعيله من قائمة المحاضرات أولاً.' });
+        }
+
+        function openExamMonthDetail(monthName) {
+            const grid = document.getElementById('exams-months-grid');
+            const detailView = document.getElementById('exam-detail-view');
+            const container = document.getElementById('specific-exam-month-container');
+            grid.classList.add('hidden');
+            detailView.classList.remove('hidden');
+            
+            let filtered = allQuizzes.filter(q => q.month === monthName);
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full p-20 text-center bg-white rounded-3xl border border-slate-100 shadow-sm font-black text-slate-400">لا توجد امتحانات مضافة لهذا الشهر.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(quiz => {
+                const hasResult = studentResults.find(r => r.quizId === quiz._id || r.lessonId === quiz._id);
+                return `
+                <div class="lesson-card p-6 border border-slate-100 flex flex-col h-full group" data-aos="zoom-in">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-14 h-14 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm">
+                            <i class="fas fa-file-signature text-2xl"></i>
+                        </div>
+                        ${hasResult ? 
+                            `<span class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-[10px] font-black">تم التسليم</span>` : 
+                            `<span class="bg-amber-100 text-amber-600 px-3 py-1 rounded-full text-[10px] font-black">متاح الآن</span>`
+                        }
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 mb-2">${quiz.title}</h3>
+                    <div class="space-y-2 mb-6 flex-grow">
+                        <div class="flex items-center text-slate-500 text-sm font-bold">
+                            <i class="far fa-hourglass ml-2 text-indigo-400"></i>
+                            <span>المدة: ${quiz.examDuration || '30'} دقيقة</span>
+                        </div>
+                    </div>
+                    ${hasResult ? `
+                        <div class="space-y-3">
+                            <div class="w-full py-4 rounded-xl font-black bg-emerald-50 text-emerald-600 flex items-center justify-center gap-2 border border-emerald-100">
+                                <i class="fas fa-check-circle"></i>
+                                <span>الدرجة: ${hasResult.score} / ${hasResult.total}</span>
+                            </div>
+                            <button onclick="reviewQuiz('${quiz._id}')" 
+                                class="w-full py-3 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-black hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center gap-2 shadow-md">
+                                <i class="fas fa-eye"></i> مراجعة إجاباتك
+                            </button>
+                        </div>
+                    ` : `
+                        <button onclick="window.location.href='quiz.html?id=${quiz._id}'" 
+                            class="w-full py-4 rounded-xl font-black flex items-center justify-center gap-2 transition-all bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-100">
+                            <span>دخول الاختبار</span>
+                            <i class="fas fa-play text-xs"></i>
+                        </button>
+                    `}
+                </div>`;
+            }).join('');
+        }
+
+        function showExamMonthCards() {
+            document.getElementById('exams-months-grid').classList.remove('hidden');
+            document.getElementById('exam-detail-view').classList.add('hidden');
+        }
+
+        function promptActivation(month) {
+            Swal.fire({
+                title: `تفعيل شهر ${month}`,
+                html: '<p class="text-slate-500 font-bold mb-4">أدخل كود التفعيل الذي استلمته من مستر وليد</p>',
+                input: 'text',
+                inputAttributes: { autocapitalize: 'off', placeholder: 'MRW-XXXX-XXXX', class: 'font-mono text-center' },
+                showCancelButton: true,
+                confirmButtonText: 'تفعيل المحتوى',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#4f46e5',
+                showLoaderOnConfirm: true,
+                preConfirm: (code) => {
+                    if (!code) return Swal.showValidationMessage('يرجى إدخال الكود');
+                    return fetch('/api/student/activate-code', {
+                        method: 'POST',
+                        headers: { 
+                            'Content-Type': 'application/json',
+                            'session-id': sessionId 
+                        },
+                        body: JSON.stringify({ code: code, studentId: userId })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.success) throw new Error(data.message);
+                        return data;
+                    })
+                    .catch(error => { Swal.showValidationMessage(`فشل: ${error.message}`); });
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ icon: 'success', title: 'تم التفعيل بنجاح! 🎉', text: 'انطلق الآن لمشاهدة محاضراتك', timer: 2000, showConfirmButton: false });
+                    loadData();
+                }
+            });
+        }
+
+        function openMonthDetail(monthName) {
+            const grid = document.getElementById('months-grid');
+            const detailView = document.getElementById('month-detail-view');
+            const container = document.getElementById('specific-month-container');
+            grid.classList.add('hidden');
+            detailView.classList.remove('hidden');
+            const selectedBranch = document.getElementById('branchFilter').value;
+            let filtered = allLessons.filter(l => l.month === monthName);
+            if (selectedBranch !== 'all') filtered = filtered.filter(l => l.branch === selectedBranch);
+            
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="p-20 text-center bg-white rounded-3xl border border-slate-100 shadow-sm font-black text-slate-400">لا يوجد محاضرات في هذا القسم حالياً.</div>`;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="month-section p-8 rounded-l-3xl mb-8" data-aos="fade-right">
+                    <h2 class="text-3xl font-black mb-10 flex items-center gap-4 text-slate-800">
+                        <span class="w-3 h-10 bg-indigo-600 rounded-full"></span> محاضرات شهر ${monthName}
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+                        ${filtered.map(lesson => {
+                            const hasResult = studentResults.find(r => r.lessonId === lesson._id);
+                            const hasVideo = lesson.videoUrl && lesson.videoUrl.trim() !== "";
+                            return `
+                            <div class="lesson-card p-8 flex flex-col gap-6 relative overflow-hidden" data-aos="zoom-in">
+                                <div>
+                                    <h4 class="font-black text-xl text-slate-800 mb-2">${lesson.title}</h4>
+                                    <span class="px-3 py-1 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-black"><i class="fas fa-tag ml-1"></i>${lesson.branch}</span>
+                                </div>
+                                <div class="space-y-4">
+                                    ${hasVideo ? `
+                                        <a href="video-player.html?id=${lesson._id}" 
+                                            class="flex items-center justify-between w-full bg-slate-900 text-white p-4 rounded-2xl font-black hover:bg-indigo-600 transition-colors shadow-lg shadow-slate-200">
+                                            <div class="flex items-center gap-3"><i class="fas fa-play-circle text-lg"></i><span>بدء المحاضرة</span></div>
+                                            <i class="fas fa-chevron-left text-xs opacity-50"></i>
+                                        </a>
+                                    ` : ''}
+                                    ${lesson.pdfUrl ? `
+                                         <a href="${lesson.pdfUrl}" target="_blank"
+                                            class="flex items-center justify-between w-full bg-white border-2 border-slate-100 text-slate-700 p-4 rounded-2xl font-black hover:border-red-500 hover:text-red-500 transition-all">
+                                            <div class="flex items-center gap-3"><i class="fas fa-file-pdf text-lg text-red-500"></i><span>المرفقات</span></div>
+                                            <i class="fas fa-download text-xs opacity-50"></i>
+                                         </a>
+                                    ` : ''}
+                                    <div class="pt-4 border-t border-slate-50">
+                                        <span class="text-[10px] font-black text-slate-400 mb-3 block uppercase tracking-widest">التقييم والمتابعة</span>
+                                        <div class="flex flex-col gap-3">
+                                            ${hasResult ? `
+                                                <div class="space-y-3">
+                                                    <div class="flex items-center justify-between w-full bg-emerald-50 text-emerald-700 p-4 rounded-2xl font-black border border-emerald-100">
+                                                        <div class="flex items-center gap-3"><i class="fas fa-check-double"></i><span>تم حل الاختبار</span></div>
+                                                        <span class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-sm">${hasResult.score} / ${hasResult.total}</span>
+                                                    </div>
+                                                    <button onclick="reviewQuiz('${lesson._id}')" 
+                                                        class="w-full py-3 bg-white border-2 border-indigo-600 text-indigo-600 rounded-2xl font-black hover:bg-indigo-600 hover:text-white transition-all flex items-center justify-center gap-2 shadow-md">
+                                                        <i class="fas fa-eye"></i> مراجعة إجاباتك
+                                                    </button>
+                                                </div>
+                                            ` : `
+                                                ${(lesson.quiz && lesson.quiz.length > 0) ? `
+                                                    <a href="quiz.html?id=${lesson._id}" 
+                                                       class="flex items-center justify-between w-full bg-emerald-600 text-white p-4 rounded-2xl font-black hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-100">
+                                                       <div class="flex items-center gap-3"><i class="fas fa-tasks"></i><span>اختبار المنصة</span></div>
+                                                       <i class="fas fa-arrow-left text-xs"></i>
+                                                    </a>
+                                                ` : `
+                                                    <div class="text-xs text-slate-300 py-3 text-center font-bold italic">لا يوجد اختبار متاح</div>
+                                                `}
+                                            `}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            `}).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function showMonthCards() {
+            document.getElementById('months-grid').classList.remove('hidden');
+            document.getElementById('month-detail-view').classList.add('hidden');
+        }
+
+        function toggleSection(sec) {
+            ['lessons', 'exams', 'grades'].forEach(s => {
+                const el = document.getElementById(`${s}-area`);
+                if(el) el.style.display = s === sec ? 'block' : 'none';
+                const btn = document.getElementById(`btn-${s}`);
+                if(btn) btn.className = s === sec ? "flex items-center gap-2 px-6 py-3.5 rounded-2xl font-black bg-indigo-600 text-white text-sm shadow-xl shadow-indigo-100" : "flex items-center gap-2 px-6 py-3.5 rounded-2xl font-black bg-white border border-slate-200 text-slate-600 text-sm hover:bg-slate-50";
+            });
+            if (sec === 'lessons') showMonthCards();
+            if (sec === 'exams') showExamMonthCards();
+            if (sec === 'grades') renderGrades();
+        }
+
+        function updateBranchFilter(lessons) {
+            const filter = document.getElementById('branchFilter');
+            const currentVal = filter.value;
+            filter.innerHTML = '<option value="all">كل الفروع</option>';
+            const branches = [...new Set(lessons.map(l => l.branch).filter(b => b))];
+            branches.forEach(branch => {
+                const option = document.createElement('option');
+                option.value = branch;
+                option.innerText = branch;
+                if(branch === currentVal) option.selected = true;
+                filter.appendChild(option);
+            });
+        }
+
+        function filterLessons() { 
+            const visibleMonthHeader = document.querySelector('#specific-month-container h2');
+            if (visibleMonthHeader) {
+                const monthText = visibleMonthHeader.innerText.replace('محاضرات شهر ', '').trim();
+                openMonthDetail(monthText);
+            }
+        }
+        
+        function logout() {
+            Swal.fire({
+                title: 'تسجيل الخروج',
+                text: " متأكد انك هتسيبنا؟",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'نعم، خروج',
+                cancelButtonText: 'إلغاء',
+                confirmButtonColor: '#4f46e5',
+                cancelButtonColor: '#f1f5f9'
+            }).then((res) => { if (res.isConfirmed) { localStorage.clear(); window.location.href = 'login.html'; } });
+        }
+
+        async function handleActivateCode() {
+            const codeInput = document.getElementById('code-input');
+            const codeValue = codeInput.value.trim();
+            if (!codeValue) { Swal.fire({ icon: 'warning', title: 'عذراً!', text: 'يرجى إدخال الكود أولاً' }); return; }
+            Swal.fire({ title: 'جاري التحقق...', allowOutsideClick: false, didOpen: () => { Swal.showLoading() } });
+            try {
+                const response = await fetch('/api/student/activate-code', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'session-id': sessionId 
+                    },
+                    body: JSON.stringify({ code: codeValue, studentId: userId })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    Swal.fire({ icon: 'success', title: 'تم التفعيل! 🎉', text: data.message }).then(() => loadData());
+                    codeInput.value = '';
+                } else {
+                    Swal.fire({ icon: 'error', title: 'فشل التفعيل', text: data.message });
+                }
+            } catch (error) { Swal.fire({ icon: 'error', title: 'خطأ في الاتصال', text: 'يرجى التأكد من اتصال الإنترنت' }); }
+        }
+
+        async function reviewQuiz(quizId) {
+            Swal.fire({ 
+                title: 'جاري تحميل مراجعة الإجابات...', 
+                allowOutsideClick: false, 
+                didOpen: () => { Swal.showLoading() } 
+            });
+
+            try {
+                const res = await fetch(`/api/student/quiz-details/${quizId}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'session-id': sessionId 
+                    }
+                });
+                const quizData = await res.json();
+                
+                const studentAttempt = studentResults.find(r => 
+                    (r.lessonId === quizId) || (r.quizId === quizId)
+                );
+
+                if (quizData.success && studentAttempt && studentAttempt.answers) {
+                    let reviewHtml = `
+                        <div class="text-right p-2 max-h-[70vh] overflow-y-auto font-sans custom-scroll">
+                            <div class="mb-8 p-6 bg-indigo-50 rounded-3xl border border-indigo-100 shadow-sm">
+                                <h4 class="text-indigo-900 font-black text-lg mb-2"><i class="fas fa-poll-h ml-2"></i> ملخص المحاولة</h4>
+                                <div class="flex justify-between items-center">
+                                    <p class="text-indigo-800 font-bold">الدرجة النهائية: <span class="text-2xl ml-1 font-black">${studentAttempt.score}</span> / ${studentAttempt.total}</p>
+                                    <span class="px-4 py-1 bg-white rounded-full text-indigo-600 font-black text-sm border border-indigo-100">${studentAttempt.percentage}%</span>
+                                </div>
+                            </div>
+                    `;
+
+                    quizData.quiz.questions.forEach((q, index) => {
+                        const studentAnswer = studentAttempt.answers[index] || "لم يتم حل السؤال";
+                        const isCorrect = studentAnswer.trim() === q.correctAnswer.trim();
+
+                        reviewHtml += `
+                            <div class="mb-8 p-6 rounded-[32px] border-2 ${isCorrect ? 'border-emerald-100 bg-emerald-50/20' : 'border-red-100 bg-red-50/20'} transition-all hover:shadow-md">
+                                <div class="flex items-start gap-3 mb-4">
+                                    <span class="flex-shrink-0 w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-black text-sm">${index + 1}</span>
+                                    <p class="font-black text-slate-800 text-lg leading-relaxed">${q.question}</p>
+                            </div>
+                            
+                            ${q.questionImage ? `
+                                <div class="mb-4 rounded-2xl overflow-hidden border-4 border-white shadow-sm max-w-full">
+                                    <img src="${q.questionImage}" alt="سؤال ${index + 1}" class="w-full h-auto object-contain cursor-zoom-in" onclick="window.open(this.src)">
+                                </div>
+                            ` : ''}
+
+                            <div class="grid grid-cols-1 gap-3">
+                                <div class="p-4 rounded-2xl text-sm ${isCorrect ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'} flex justify-between items-center shadow-sm">
+                                    <span class="font-bold text-base">إجابتك: ${studentAnswer}</span>
+                                    <i class="fas ${isCorrect ? 'fa-check-circle' : 'fa-times-circle'} text-xl"></i>
+                                </div>
+                                ${!isCorrect ? `
+                                    <div class="p-4 rounded-2xl text-sm bg-emerald-100 text-emerald-800 font-black border border-emerald-200 flex items-center gap-2">
+                                        <i class="fas fa-check-circle text-emerald-600"></i>
+                                        <span class="text-base">الإجابة الصحيحة: ${q.correctAnswer}</span>
+                                    </div>
+                                ` : ''}
+                            </div>
+
+                            ${q.explanation ? `
+                                <div class="mt-4 p-5 bg-white/80 rounded-2xl border border-indigo-100 shadow-inner">
+                                    <p class="text-indigo-700 font-black mb-1 flex items-center gap-2 text-sm">
+                                        <i class="fas fa-lightbulb"></i> تفسير الإجابة:
+                                    </p>
+                                    <p class="text-slate-600 leading-relaxed font-bold text-sm">${q.explanation}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                });
+
+                reviewHtml += `</div>`;
+
+                Swal.fire({
+                    title: `<span class="font-black text-indigo-600 text-xl">مراجعة: ${quizData.quiz.title}</span>`,
+                    html: reviewHtml,
+                    width: '900px',
+                    confirmButtonText: 'إغلاق المراجعة',
+                    confirmButtonColor: '#4f46e5',
+                    customClass: { popup: 'rounded-[40px]' }
+                });
+            } else {
+                Swal.fire({ icon: 'info', title: 'عذراً', text: 'لا تتوفر بيانات مراجعة مفصلة لهذه المحاولة.' });
+            }
+        } catch (err) {
+            console.error("Review Quiz Error:", err);
+            Swal.fire({ icon: 'error', title: 'خطأ', text: 'حدث خطأ في الاتصال بالسيرفر' });
+        }
+    }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === "PrintScreen" || (e.ctrlKey && e.shiftKey && e.key === "I") || (e.ctrlKey && e.key === "p") || (e.ctrlKey && e.key === "s")) {
+            e.preventDefault();
+            Swal.fire({ icon: 'error', title: 'تنبيه!', text: 'حماية المحتوى مفعلة، لا يمكن التصوير أو الطباعة', timer: 2000, showConfirmButton: false });
+        }
+    });
+</script>
+</body>
+</html>

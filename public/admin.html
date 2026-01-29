@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>لوحة تحكم الإدارة | Mr Walid Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>إدارة المنصة</h2>
+        <button class="nav-btn active" onclick="showTab('lessons')">📚 إضافة دروس</button>
+        <button class="nav-btn" onclick="showTab('codes')">🔑 توليد أكواد</button>
+        <button class="nav-btn" onclick="showTab('reports')">📊 تقارير الطلاب</button>
+        <button class="nav-btn" onclick="logout()" style="color: #ff9999; margin-top: 30px;">🚪 تسجيل خروج</button>
+    </div>
+
+    <div class="content">
+        <div id="lessonsSection" class="tab-content">
+            <div class="card">
+                <h3>رفع درس جديد والاختبار الخاص به</h3>
+                <form id="addLessonForm">
+                    <div class="form-group">
+                        <label>عنوان الدرس</label>
+                        <input type="text" id="lessonTitle" placeholder="مثال: اشتقاق الدوال المثلثية" required>
+                    </div>
+                    <div class="form-group">
+                        <label>رابط الفيديو (Embed URL)</label>
+                        <input type="text" id="videoUrl" placeholder="https://www.youtube.com/embed/..." required>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <div class="form-group" style="flex:1">
+                            <label>الصف الدراسي</label>
+                            <select id="lessonGrade">
+                                <option value="1_sec">أولى ثانوي</option>
+                                <option value="2_sec">تانية ثانوي</option>
+                                <option value="3_sec">ثالثة ثانوي</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1">
+                            <label>الفرع</label>
+                            <select id="lessonBranch">
+                                <option value="تفاضل">تفاضل</option>
+                                <option value="جبر">جبر</option>
+                                <option value="استاتيكا">استاتيكا</option>
+                                <option value="ديناميكا">ديناميكا</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1">
+                            <label>الشهر</label>
+                            <input type="number" id="lessonMonth" min="1" max="12" value="10">
+                        </div>
+                    </div>
+                    <button type="submit" id="saveLessonBtn" class="btn-action">حفظ الدرس ونشره</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="codesSection" class="tab-content" style="display:none">
+            <div class="card">
+                <h3>توليد أكواد شحن شهري</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label>عدد الأكواد</label>
+                        <input type="number" id="codesCount" value="50">
+                    </div>
+                    <div class="form-group">
+                        <label>الصف</label>
+                        <select id="codesGrade">
+                            <option value="1_sec">أولى ثانوي</option>
+                            <option value="2_sec">تانية ثانوي</option>
+                            <option value="3_sec">ثالثة ثانوي</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>الفرع المفتوح</label>
+                        <select id="codesBranch">
+                            <option value="تفاضل">تفاضل</option>
+                            <option value="جبر">جبر</option>
+                            <option value="استاتيكا">استاتيكا</option>
+                            <option value="ديناميكا">ديناميكا</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>لشهر كام؟</label>
+                        <input type="number" id="codesMonth" value="10">
+                    </div>
+                </div>
+                <button onclick="generateCodes()" id="genBtn" class="btn-action">توليد الأكواد الآن</button>
+                <div id="codesList" class="code-display"></div>
+            </div>
+        </div>
+
+        <div id="reportsSection" class="tab-content" style="display:none">
+            <div class="card">
+                <h3>سجل متابعة الطلاب</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>اسم الطالب</th>
+                            <th>رقم الهاتف</th>
+                            <th>الصف</th>
+                            <th>آخر درجة</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentsTableBody">
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        if (localStorage.getItem('role') !== 'admin') window.location.href = 'login.html';
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName + 'Section').style.display = 'block';
+            event.target.classList.add('active');
+            if(tabName === 'reports') loadReports();
+        }
+
+        // إرسال درس للسيرفر
+        document.getElementById('addLessonForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveLessonBtn');
+            btn.disabled = true;
+
+            const lessonData = {
+                title: document.getElementById('lessonTitle').value,
+                videoUrl: document.getElementById('videoUrl').value,
+                grade: document.getElementById('lessonGrade').value,
+                branch: document.getElementById('lessonBranch').value,
+                month: document.getElementById('lessonMonth').value
+            };
+
+            const res = await fetch('/api/admin/add-lesson', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(lessonData)
+            });
+            
+            const result = await res.json();
+            alert(result.message);
+            btn.disabled = false;
+        };
+
+        // توليد الأكواد
+        async function generateCodes() {
+            const btn = document.getElementById('genBtn');
+            const display = document.getElementById('codesList');
+            btn.disabled = true;
+
+            const bodyData = {
+                count: document.getElementById('codesCount').value,
+                grade: document.getElementById('codesGrade').value,
+                branch: document.getElementById('codesBranch').value,
+                month: document.getElementById('codesMonth').value
+            };
+
+            const res = await fetch('/api/admin/generate-codes', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify(bodyData)
+            });
+
+            const data = await res.json();
+            if(data.success) {
+                display.style.display = 'block';
+                display.innerHTML = "<strong>الأكواد جاهزة للطباعة:</strong><br>" + data.generatedCodes.join(' - ');
+            }
+            btn.disabled = false;
+        }
+
+        async function loadReports() {
+            const tbody = document.getElementById('studentsTableBody');
+            const res = await fetch('/api/admin/students-report', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            
+            tbody.innerHTML = data.map(s => `
+                <tr>
+                    <td>${s.name}</td>
+                    <td>${s.phone}</td>
+                    <td>${s.grade}</td>
+                    <td>${s.lastScore || 'لم يمتحن'}</td>
+                </tr>
+            `).join('');
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول | منصة مستر وليد</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg-light: #f8fafc;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg-light);
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            border: 1px solid #f1f5f9;
+        }
+
+        .form-input {
+            width: 100%;
+            background-color: #f1f5f9;
+            border: 2px solid transparent;
+            padding: 14px 16px;
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.3s ease;
+            color: #1e293b;
+            margin-bottom: 15px;
+        }
+
+        .form-input:focus {
+            background-color: white;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        #loginBtn {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4);
+        }
+
+        #loginBtn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.4);
+        }
+
+        #loginBtn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .error-msg { 
+            background: #fee2e2; 
+            color: #dc2626; 
+            padding: 12px; 
+            border-radius: 12px; 
+            margin-bottom: 20px; 
+            display: none; 
+            text-align: center; 
+            font-size: 14px; 
+            font-weight: bold; 
+            border: 1px solid #fecaca; 
+        }
+
+        .logo-box {
+            font-size: 50px;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+
+        .animate-item {
+            animation: fadeInShadow 0.6s ease forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeInShadow {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card animate__animated animate__fadeIn">
+        <div class="text-center mb-6">
+            <span class="text-indigo-600 font-black text-xs uppercase tracking-widest block mb-2 animate-item" style="animation-delay: 0.1s;">منصة مستر وليد التعليمية</span>
+            <div class="logo-box animate-item" style="animation-delay: 0.2s;">📐</div>
+            <h2 class="text-2xl font-black text-slate-800 mb-1 animate-item" style="animation-delay: 0.3s;">أهلا بيك معانا </h2>
+            <p class="text-slate-500 animate-item" style="animation-delay: 0.4s;">طريقك المضمون للدرجه النهائيه في الرياضه</p>
+        </div>
+        
+        <div id="errorBox" class="error-msg"></div>
+
+        <form id="mainLoginForm" class="animate-item" style="animation-delay: 0.5s;">
+            <input type="text" id="phone" class="form-input" placeholder="رقم الهاتف" required>
+            <input type="password" id="password" class="form-input" placeholder="كلمة المرور" required>
+            <button type="submit" id="loginBtn">دخول</button>
+        </form>
+
+        <div class="text-center mt-6 text-slate-500 font-semibold animate-item" style="animation-delay: 0.6s;">
+           معندكش حساب لسه؟<a href="register.html" class="text-indigo-600 hover:underline">إنشاء حساب جديد</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+   <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginForm = document.getElementById('mainLoginForm');
+        const errorBox = document.getElementById('errorBox');
+        const loginBtn = document.getElementById('loginBtn');
+
+        if (loginForm) {
+            loginForm.onsubmit = async (e) => {
+                e.preventDefault();
+                
+                errorBox.style.display = 'none';
+                loginBtn.disabled = true;
+                loginBtn.innerText = 'جاري التحقق...';
+
+                try {
+                    const phone = document.getElementById('phone').value.trim();
+                    const password = document.getElementById('password').value;
+
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ phone, password })
+                    });
+
+                    const result = await response.json(); // هنا المتغير اسمه result
+
+                    const isSuspended = (result.user && result.user.isSuspended) || result.isSuspended;
+                    
+                    if (isSuspended) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'عذراً.. الحساب معلق',
+                            text: result.message || 'تم تعليق حسابك من قبل الإدارة، يرجى التواصل مع مستر وليد لحل المشكلة.',
+                            confirmButtonText: 'حسناً',
+                        confirmButtonColor: '#4f46e5',
+                            customClass: { popup: 'rounded-[24px]' }
+                        });
+                        loginBtn.disabled = false;
+                        loginBtn.innerText = 'دخول';
+                        return; 
+                    }
+
+                    if (result.success) {
+                        localStorage.setItem('token', result.token);
+                        
+                        // [التصحيح هنا] بنستخدم result.currentSessionId لأن المتغير فوق اسمه result
+                        localStorage.setItem('currentSessionId', result.currentSessionId);
+                        
+                        localStorage.setItem('userId', result.userId || result._id); 
+                        localStorage.setItem('userName', result.userName || result.name);
+                        localStorage.setItem('userGrade', result.grade);
+                        localStorage.setItem('role', result.role || 'student');
+
+                        // [إضافة] تخزين كود الجلسة الفريد لمنع تعدد الأجهزة
+                        if (result.sessionId) {
+                            localStorage.setItem('sessionId', result.sessionId);
+                        }
+
+                        setTimeout(() => {
+                            if (result.role === 'admin') {
+                                window.location.href = 'admin-dashboard.html';
+                            } else {
+                                window.location.href = 'student-dashboard.html';
+                            }
+                        }, 500);
+                    } else {
+                        errorBox.innerText = '❌ ' + (result.message || 'بيانات الدخول غير صحيحة');
+                        errorBox.style.display = 'block';
+                        loginBtn.disabled = false;
+                        loginBtn.innerText = 'دخول';
+                    }
+                } catch (error) {
+                    console.error("❌ خطأ الاتصال:", error);
+                    errorBox.innerText = '❌ فشل الاتصال بالسيرفر.. تأكد من تشغيل الـ Node.js';
+                    errorBox.style.display = 'block';
+                    loginBtn.disabled = false;
+                    loginBtn.innerText = 'دخول';
+                }
+            };
+        }
+    });
+</script>
+</body>
+</html>
